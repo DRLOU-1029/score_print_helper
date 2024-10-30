@@ -3,7 +3,7 @@ import json
 import tkinter as tk
 from tkinter import ttk, filedialog
 # 该版本的代码是在testbak2.py的基础上进行修改的，给乐器选择框添加了默认选项和自定义乐器输入框，用户可以选择常见乐器类型或输入自定义乐器名称。
-# 另外可以选择源文件名，省去输入。新文件名默认为源文件名加上“_改”。
+# 另外可以选择源文件名，省去输入。新文件名默认为源文件名加上“_改”.
 def find_instrument_pages(original_pdf_path, instruments):
     instrument_ranges = {instrument: [] for instrument in instruments}
 
