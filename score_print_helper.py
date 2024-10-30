@@ -1,7 +1,9 @@
 import fitz  # PyMuPDF
 import json
 import tkinter as tk
-#该版本的代码是在testbak1.py的基础上进行修改的，主要是增加了一个GUI界面，用户可以在界面上输入源文件名、新文件名和乐器名及数量，然后点击“生成PDF”按钮，程序会根据用户输入的信息生成新的PDF文件。
+from tkinter import ttk, filedialog
+# 该版本的代码是在testbak2.py的基础上进行修改的，给乐器选择框添加了默认选项和自定义乐器输入框，用户可以选择常见乐器类型或输入自定义乐器名称。
+# 另外可以选择源文件名，省去输入。新文件名默认为源文件名加上“_改”。
 def find_instrument_pages(original_pdf_path, instruments):
     instrument_ranges = {instrument: [] for instrument in instruments}
 
@@ -43,24 +45,35 @@ def create_new_score(original_pdf_path, instrument_counts, new_pdf_path):
     print(f"New PDF created at: {new_pdf_path}")
 
 
+def add_instrument():
+    instrument = instrument_choice.get()
+    if instrument == "其他":
+        instrument = custom_instrument_entry.get().strip()
+    count = int(instrument_count_entry.get().strip())
+
+    if instrument:
+        instrument_counts[instrument] = count
+        instrument_listbox.insert(tk.END, f"{instrument}: {count}")
+        custom_instrument_entry.delete(0, tk.END)
+        instrument_count_entry.delete(0, tk.END)
+
+def select_original_pdf():#选择源文件
+    file_path = filedialog.askopenfilename(filetypes=[("PDF Files", "*.pdf")])
+    if file_path:
+        original_pdf_entry.delete(0, tk.END)
+        original_pdf_entry.insert(0, file_path)
+
 def generate_pdf():
-    # 获取用户输入的文件名
-    original_pdf_name = original_pdf_entry.get().strip()+'.pdf'
-    new_pdf_name = new_pdf_entry.get().strip()+'.pdf'
+    # 获取文件名
+    original_pdf_name = original_pdf_entry.get().strip()
+    new_pdf_name = new_pdf_entry.get().strip()
 
-    # 获取乐器和数量的输入
-    instrument_input = instrument_text.get("1.0", tk.END).strip()
-    instrument_list = instrument_input.splitlines()
-    instrument_counts = {}
-
-    for item in instrument_list:
-        if ':' in item:
-            name, count = item.split(':', 1)
-            instrument_counts[name.strip()] = int(count.strip())
-
+    if not new_pdf_name:
+        base_name = original_pdf_name.split(".")[0]
+        new_pdf_name = f"{base_name}_改"
     # 检查文件名是否为空
-    if not original_pdf_name or not new_pdf_name:
-        print("请确保源文件名和新文件名已正确填写。")
+    if not original_pdf_name:
+        print("请确保源文件名已正确填写。")
         return
 
     # 转换为 JSON
@@ -68,7 +81,7 @@ def generate_pdf():
     print("Instrument counts in JSON:", json_data)
 
     # 生成新 PDF
-    create_new_score(original_pdf_name, instrument_counts, new_pdf_name)
+    create_new_score(original_pdf_name, instrument_counts, new_pdf_name+'.pdf')
 
 
 # 创建主窗口
@@ -76,20 +89,45 @@ root = tk.Tk()
 root.title("PDF 文件生成器")
 
 # 文件名输入框
+# 源文件选择
 tk.Label(root, text="源文件名:").pack()
 original_pdf_entry = tk.Entry(root, width=50)
 original_pdf_entry.pack()
+
+select_pdf_button = tk.Button(root, text="选择源文件", command=select_original_pdf)
+select_pdf_button.pack()
 
 tk.Label(root, text="新文件名:").pack()
 new_pdf_entry = tk.Entry(root, width=50)
 new_pdf_entry.pack()
 
-# 乐器数量输入框
-tk.Label(root, text="输入乐器名和数量（格式: 乐器名: 数量，每行一个）:").pack()
-instrument_text = tk.Text(root, height=10, width=50)
-instrument_text.pack()
+# 乐器选择框
+instrument_counts = {}
+tk.Label(root, text="选择乐器类型:").pack()
+common_instruments = ["小提琴", "长笛2", "长笛1", "高音萨克斯chen", "吉他"]
+instrument_choice = ttk.Combobox(root, values=common_instruments + ["其他"], state="readonly")
+instrument_choice.pack()
+instrument_choice.set("小提琴")  # 默认选项
 
-# 生成按钮
+# 自定义乐器输入框
+tk.Label(root, text="如果选择其他，请输入乐器名称:").pack()
+custom_instrument_entry = tk.Entry(root, width=50)
+custom_instrument_entry.pack()
+
+# 乐器数量输入框
+tk.Label(root, text="输入数量:").pack()
+instrument_count_entry = tk.Entry(root, width=10)
+instrument_count_entry.pack()
+
+# 添加乐器按钮
+add_button = tk.Button(root, text="添加乐器", command=add_instrument)
+add_button.pack()
+
+# 显示乐器列表
+instrument_listbox = tk.Listbox(root, width=50, height=10)
+instrument_listbox.pack()
+
+# 生成 PDF 按钮
 generate_button = tk.Button(root, text="生成 PDF", command=generate_pdf)
 generate_button.pack()
 
