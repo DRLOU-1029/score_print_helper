@@ -1,11 +1,7 @@
 import fitz  # PyMuPDF
 import json
 import tkinter as tk
-
-# 用户输入
-original_pdf_name = '梁祝.pdf'#源文件名
-new_pdf_name = '新总谱.pdf'#新文件名
-
+#该版本的代码是在testbak1.py的基础上进行修改的，主要是增加了一个GUI界面，用户可以在界面上输入源文件名、新文件名和乐器名及数量，然后点击“生成PDF”按钮，程序会根据用户输入的信息生成新的PDF文件。
 def find_instrument_pages(original_pdf_path, instruments):
     instrument_ranges = {instrument: [] for instrument in instruments}
 
@@ -46,8 +42,13 @@ def create_new_score(original_pdf_path, instrument_counts, new_pdf_path):
     doc.close()
     print(f"New PDF created at: {new_pdf_path}")
 
+
 def generate_pdf():
-    # 获取用户输入
+    # 获取用户输入的文件名
+    original_pdf_name = original_pdf_entry.get().strip()+'.pdf'
+    new_pdf_name = new_pdf_entry.get().strip()+'.pdf'
+
+    # 获取乐器和数量的输入
     instrument_input = instrument_text.get("1.0", tk.END).strip()
     instrument_list = instrument_input.splitlines()
     instrument_counts = {}
@@ -57,6 +58,11 @@ def generate_pdf():
             name, count = item.split(':', 1)
             instrument_counts[name.strip()] = int(count.strip())
 
+    # 检查文件名是否为空
+    if not original_pdf_name or not new_pdf_name:
+        print("请确保源文件名和新文件名已正确填写。")
+        return
+
     # 转换为 JSON
     json_data = json.dumps(instrument_counts, ensure_ascii=False)
     print("Instrument counts in JSON:", json_data)
@@ -64,18 +70,26 @@ def generate_pdf():
     # 生成新 PDF
     create_new_score(original_pdf_name, instrument_counts, new_pdf_name)
 
-# 调用函数生成新 PDF
+
 # 创建主窗口
 root = tk.Tk()
-root.title("乐器数量收集")
+root.title("PDF 文件生成器")
 
-# 创建文本框
+# 文件名输入框
+tk.Label(root, text="源文件名:").pack()
+original_pdf_entry = tk.Entry(root, width=50)
+original_pdf_entry.pack()
+
+tk.Label(root, text="新文件名:").pack()
+new_pdf_entry = tk.Entry(root, width=50)
+new_pdf_entry.pack()
+
+# 乐器数量输入框
 tk.Label(root, text="输入乐器名和数量（格式: 乐器名: 数量，每行一个）:").pack()
-
 instrument_text = tk.Text(root, height=10, width=50)
 instrument_text.pack()
 
-# 创建生成按钮
+# 生成按钮
 generate_button = tk.Button(root, text="生成 PDF", command=generate_pdf)
 generate_button.pack()
 
